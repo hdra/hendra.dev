@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href='https://fonts.googleapis.com/css?family=Gentium+Book+Basic|Merriweather:400,300' rel='stylesheet' type='text/css'>
+    <link href="/style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="blog-header">
+        <h1><a href="{{ .Site.BaseURL }}">{{ .Site.Title }}</a></h1>
+        <p>{{ .Site.Params.Subtitle }} </p>
+        <nav>
+        </nav>
+      </header>
+    {{ block "main" . }}
+    {{ end }}
+    </div>
+  </body>
+</html>
