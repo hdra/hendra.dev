@@ -1,10 +1,17 @@
 {{define "main"}}
-<h1>Single</h1>
-<ul>
-  {{ range .Pages }}
-  <li>
-    <a href="{{ .Permalink }}">{{.Title}}</a>
-  </li>
-  {{ end }}
-</ul>
+<div class="post">
+
+  <header>
+    <h1>{{ .Title }}</h1>
+    <p class="date">
+      Written on <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z0700" }}">
+        {{ .Date.Format "Jan 2, 2006" }}
+      </time>
+    </p>
+  </header>
+
+  <article>
+    {{ .Content }}
+  </article>
+
 {{ end }}
