@@ -1,0 +1,37 @@
+{
+  "baseURL": "http://example.org/",
+  "languageCode": "en-us",
+  "title": "My New Hugo Site",
+  "markup": {
+    "highlight": {
+      "anchorLineNos": false,
+      "codeFences": true,
+      "guessSyntax": false,
+      "hl_Lines": "",
+      "lineAnchors": "",
+      "lineNoStart": 1,
+      "lineNos": false,
+      "lineNumbersInTable": true,
+      "noClasses": true,
+      "style": "monokailight",
+      "tabWidth": 4
+    }
+  },
+  "menu": {
+    "main": [
+      {
+        "identifier": "notes",
+        "name": "notes",
+        "url": "/notes/"
+      },
+      {
+        "identifier": "blogs",
+        "name": "blogs",
+        "url": "/blog/"
+      }
+    ]
+  },
+  "params": {
+    "subtitle": "A work in progress"
+  }
+}
