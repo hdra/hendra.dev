@@ -1,7 +1,10 @@
 {
-  "baseURL": "http://example.org/",
+  "baseURL": "https://hendra.dev/",
   "languageCode": "en-us",
-  "title": "My New Hugo Site",
+  "title": "hendra.dev",
+  "params": {
+    "subtitle": "A work in progress"
+  },
   "markup": {
     "highlight": {
       "anchorLineNos": false,
@@ -14,7 +17,7 @@
       "lineNumbersInTable": true,
       "noClasses": true,
       "style": "monokailight",
-      "tabWidth": 4
+      "tabWidth": 2
     }
   },
   "menu": {
@@ -30,8 +33,5 @@
         "url": "/blog/"
       }
     ]
-  },
-  "params": {
-    "subtitle": "A work in progress"
   }
 }
