@@ -1,0 +1,14 @@
+<!doctype html><html><head><link href="https://fonts.googleapis.com/css?family=Gentium+Book+Basic|Merriweather:400,300" rel=stylesheet type=text/css><link rel=stylesheet href=https://hendra.dev/styles/style.min.adafe591d9bc2917608cd56205e2997041b7f1d2a684555879647388e2c838f2.css></head><body><div class=container><header class=blog-header><h1><a href=https://hendra.dev/>hendra.dev</a></h1><p>A work in progress</p><nav><ul class=nav><li><a href=/blog/>blogs</a></li><li><a href=/notes/>notes</a></li></ul></nav></header><div class=post><header><h1>Phonegap in Visual Studio – There is no script engine for file extension ‘.js’</h1><p class=date>Written on <time datetime=2012-03-28T21:59:00+0700>Mar 28, 2012</time></p></header><article><p>As I recently reinstalled my Windows system, I had to re-install almost
+every programs I usually use again, one of them is the Visual Studio, and
+since I have been messing around with Phonegap these days, I had to set
+it up again. I did what I did before, copying the project template zip
+file to my templates folder, and I tried to create a new Phonegap
+project, but when I try to build it, Visual Studio gives me an error
+saying : “There is no script engine for file extension .js”.</p><p>This is pretty weird, since I set it up the same way last time, and it
+works perfectly, so I did a bit of internet search, some other people
+are having the same problem as well, and most of them suggested the fix
+<a href=http://www.winhelponline.com/articles/230/1/Error-There-is-no-script-engine-for-file-extension-when-running-js-files.html>here</a>. I tried it, but it doesn’t work for me, further search leads me
+to this <a href=https://answers.microsoft.com/en-us/windows/forum/windows_7-system/fix-there-is-no-script-engine-for-file-extension/95d58867-3f31-45e3-aeaf-32ecea4d33c1>page</a>, and this is the solution that worked for me. I changed
+the file association for .js files back to the Microsoft Window Based
+Script host ( it was associated with notepad++ before), and I tried to
+compile it again, and everything is good again.</p></article></div></body></html>

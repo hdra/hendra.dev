@@ -1,0 +1,150 @@
+<!doctype html><html><head><link href="https://fonts.googleapis.com/css?family=Gentium+Book+Basic|Merriweather:400,300" rel=stylesheet type=text/css><link rel=stylesheet href=https://hendra.dev/styles/style.min.adafe591d9bc2917608cd56205e2997041b7f1d2a684555879647388e2c838f2.css></head><body><div class=container><header class=blog-header><h1><a href=https://hendra.dev/>hendra.dev</a></h1><p>A work in progress</p><nav><ul class=nav><li><a href=/blog/>blogs</a></li><li><a href=/notes/>notes</a></li></ul></nav></header><div class=post><header><h1>Python Learning – Part 3</h1><p class=date>Written on <time datetime=2012-01-12T20:10:00+0700>Jan 12, 2012</time></p></header><article><p>Well, I was pretty busy this week, and I haven’t touch too much of
+Python these days, and even if if I done some exercise on Python, I was
+too lazy to write up a blog post for it, but I promised I will blog more
+to keep track of my progress, so here I am writing this.</p><p>Ok, so this time, I want to talk about the getting input from the user,
+and  flow control in Python, in other words, I am going to talk about
+conditional statement and loop.</p><p>Let’s start with the user input. The basic input function in python is
+<code>raw_input()</code>, which gets whatever the user entered, and process it as a
+string. You can pass an optional string argument that will be used as
+the prompt, here is an example code:</p><pre><code>:::python
+print &quot;What is your name?&quot;
+
+name = raw_input()
+print &quot;Hello, %s&quot;%name
+
+#or you can pass the prompt as an argument
+
+name = raw_input(&quot;What is your name?&quot;)
+print &quot;Hello, %s&quot;,%name
+</code></pre><p>Another option is to use the <code>input()</code>, which is is similar to the
+<code>raw_input</code>, except that the user input isn’t processed as a string, but
+as an expression. So, if you entered a number, it will process the input
+as a number, or if you entered an variable name, it will be processed as
+an variable, and so on</p><pre><code>:::python
+# x is 5
+x = input(&quot;Enter a number: &quot;) #enter '5'
+
+# x is 12
+x = input(&quot;Enter another number: &quot;) #enter '4*3'
+
+# this will produce an error, because John is not defined as a variable
+
+y = input(&quot;Enter a name: &quot;) #enter 'John'
+# y will be equal to x, because the input will be processed as avariable
+
+y = input(&quot;Enter a letter: &quot;) #enter 'x'
+</code></pre><p>Ok, the next part is where things start to get fun, the basic flow
+control in python using if, elif, and else. Before I begin, let me talk
+a little bit about code blocks and boolean values. Code blocks are
+basically a group of code, which can consist of one or more statements
+and declarations. In addition, the variables inside a code block are
+isolated from the code outside of the block, so a variable declared
+inside a code block cant be used outside of the block. Code blocks are
+used in many places in programming, one of them is the conditional and
+looping statements. Code blocks are expressed in various ways in
+different programming languages, some of them uses the curly braces { }
+(C++, C#, Java), some of them uses the BEGIN and END (VB) keyword, and
+in Python, we uses indentation (4 spaces), so the codes that are
+indented  are considered as a block of code, and to nest several levels
+of code blocks, just add more indentation to the lines of code.</p><p>Boolean values are basically logical true or false values. Comparison
+operators will always return a boolean value of either true or false,
+even though comparison operators are not the only thing that can return
+a boolean value, it is the basics of it. Comparison operations in Python
+are pretty much self-explanatory, and it is similar to other programming
+language:</p><pre><code>:::python
+#Equal
+5 == 5 #True
+5 != 5 #False
+
+#Greater than/Equal
+5 &gt; 5 #False
+5 &gt;= 5 #True
+
+#Less than/Equal
+5 &lt; 5 #False
+5 &lt;= 5 #True
+3 &lt; 5 #True
+10 &gt; 2 #True
+5 != 10 #True
+
+# there are also the 'and', 'or', and 'not' keyword
+# and will evaluate to true if both are true
+# or will evaluate to true if one of the is true
+# and not will produce the reverse value
+
+3 == 3 and 1 &lt; 3 #True
+3 != 3 and 1 &lt; 3 #False
+3 != 3 or 2 &lt;5 #True
+not 3 == 3 #False
+
+#and so on
+</code></pre><p>I am not sure how to explain code indentation in plain english, so let
+me just write some example if statement code,</p><pre><code>:::python
+x = input(&quot;Please enter a number: &quot;)
+if x &gt; 10:
+    print &quot;You entered a number greater than 10&quot;
+elif x &lt; 5:
+    print &quot;You entered a number that is less than 5&quot;
+else:
+    print &quot;You entered a number between 5 and 10&quot;
+</code></pre><p>As you can see, the if statement will test if the statement
+is true or not, followed by a colon and an indented lines to specify
+which code to execute if the statement evaluates to true, the next elif
+statement will be executed only if the first if statement is false, and
+it will test it the statement again. You can put as many elif statement
+as you want, and finally, an else statement is put there to specify
+which code to execute if all of the tests before it evaluate to false.
+The elif and the else statement are optional, which means you can write
+a code to only run when a certain condition is met, or do nothing if
+that certain condition is not met.</p><pre><code>:::python
+x = raw_input(&quot;Enter your name: &quot;)
+
+#Only print these statements if the name is John
+if x == &quot;John&quot;:
+    print &quot;Hello, John! Good to see you again.&quot;
+    print &quot;What can I do for you today, %s&quot;%x
+</code></pre><p>The next thing I am going to talk about is looping. Similar
+to the conditional statement, looping uses code blocks to specify
+several statements of code to run as well. There are two ways to create
+a loop, the first one is the while loop, which will continue to run as
+long as the boolean statement remains true.</p><pre><code>:::python
+# This one will run the loop endlessly, because the boolean statement
+# is hardcoded as True
+while True:
+    print &quot;Never ending loop&quot;
+    print &quot;Press ctrl-c or ctrl-z to terminate&quot;
+
+# You should add a statement to eventually cause the boolean statement
+# turns False
+x = 1 #initialize x to 1
+while x &lt; 10: #continue to run the loop as long as the value of x &lt; 10
+    print &quot;Count no.%d&quot;%x
+    x += 1 #increase the value of x by one on each iterations
+           #so that eventually the x &lt; 10 statement will be false
+</code></pre><p>The second type of loop is the for loop, which will loop through the
+content of a list one by one. (I will talk about list in another post,
+but basically, a list is just a sequence of values that is identified by
+a single variable).</p><pre><code>:::python
+# the basic syntax of a for loop is:
+# for [variable name] in [list]:
+# #codes for the loop
+# for example:
+
+#Defining a list, more on this later
+nameList = ['John', 'Jack', 'Adam']
+
+# running the loop, printing the content of the list
+# one by one
+
+for name in nameList:
+    print &quot;Hello,%s&quot;%name
+
+# The code above will print John,Jack and Adam on the console
+# You can also generate a list of numbers by using the range function
+# the range function takes two arguments, the beginning and the end of
+the list
+
+# Will print the numbers 2-10
+for i in range(2,10):
+    print i
+</code></pre></article></div></body></html>

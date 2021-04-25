@@ -1,0 +1,70 @@
+<!doctype html><html><head><link href="https://fonts.googleapis.com/css?family=Gentium+Book+Basic|Merriweather:400,300" rel=stylesheet type=text/css><link rel=stylesheet href=https://hendra.dev/styles/style.min.adafe591d9bc2917608cd56205e2997041b7f1d2a684555879647388e2c838f2.css></head><body><div class=container><header class=blog-header><h1><a href=https://hendra.dev/>hendra.dev</a></h1><p>A work in progress</p><nav><ul class=nav><li><a href=/blog/>blogs</a></li><li><a href=/notes/>notes</a></li></ul></nav></header><div class=post><header><h1>C# – Optional Arguments and Constructor Chaining</h1><p class=date>Written on <time datetime=2012-05-22T23:19:00+0700>May 22, 2012</time></p></header><article><p>Learned something new about C# today, first thing is Constructor
+Chaining.  Constructor chaining enables constructors to call another
+overloaded constructor, with it, the amount of duplicate code can be
+reduced significantly, here is an example:</p><pre><code>:::csharp
+class Person{
+    string name;
+    int age;
+    string address;
+
+    public Person(string name):this(string.Empty,0,string.Empty)
+    {    }
+    public Person(string name):this(name,0,string.Empty)
+    {    }
+
+    public Person(string name, int age):this(name,age,string.Empty)
+    {    }
+
+    public Person(string name, int age, string address)
+    {
+        this.name=name;
+        this.age=age;
+        this.address=address;
+    }
+}
+
+// It can be used to call the base class' constructor as well, with the
+// base keyword
+
+class AwesomePerson:Person{
+    int awesomenessLevel;
+
+    public AwesomePerson(string name, int age, string address, int level):base(name,age,address)
+    {
+        this.awesomenessLevel = level;
+    }
+
+    public AwesomePerson(int level):this(string.Empty,0,string.Empty,level)
+    {    }
+
+// and so on...
+}
+</code></pre><p>With that, I can reduce the amount of code in the constructors, and
+still get the options of passing only the argument that I need to the
+constructors. There is another way to do this, starting with C# 4.0, it
+introduced optional arguments that is common in dynamic languages, and
+it is pretty awesome, and it can be combined with the constructors
+chaining above for more power!</p><pre><code>:::csharp
+class Person
+{
+    string name;
+    int age;
+    string address;
+
+    public Person(string name = string.Empty,
+                  int age=0,
+                  string address = string.Empty)
+    {
+        this.name=name;
+        this.age=age;
+        this.address=address;
+    }
+
+}
+
+// To create the instances:
+Person a = new Person();
+Person b = new Person(&quot;Joe&quot;);
+Person c = new Person(age:19,address:&quot;Somewhere&quot;);
+Person c = new Person(&quot;John&quot;,23);
+</code></pre><h2 id=references>References:</h2><ul><li><a href=http://stackoverflow.com/questions/199761/how-can-you-use-optional-parameters-in-c>http://stackoverflow.com/questions/199761/how-can-you-use-optional-parameters-in-c</a></li><li><a href=http://msdn.microsoft.com/en-us/library/dd264739.aspx>http://msdn.microsoft.com/en-us/library/dd264739.aspx</a></li></ul></article></div></body></html>

@@ -1,0 +1,29 @@
+<!doctype html><html><head><link href="https://fonts.googleapis.com/css?family=Gentium+Book+Basic|Merriweather:400,300" rel=stylesheet type=text/css><link rel=stylesheet href=https://hendra.dev/styles/style.min.adafe591d9bc2917608cd56205e2997041b7f1d2a684555879647388e2c838f2.css></head><body><div class=container><header class=blog-header><h1><a href=https://hendra.dev/>hendra.dev</a></h1><p>A work in progress</p><nav><ul class=nav><li><a href=/blog/>blogs</a></li><li><a href=/notes/>notes</a></li></ul></nav></header><div class=post><header><h1>Supervisord and Job Retries</h1><p class=date>Written on <time datetime=2016-03-09T22:59:00+0700>Mar 9, 2016</time></p></header><article><p>When you are deploying an application to production that includes a background queue,
+it is important to also setup a process monitor to make sure the worker stays up.</p><p>One of the most popular process monitor is <a href=http://supervisord.org/>supervisord</a>, which also happens
+to be the one included in the <a href=https://laravel.com/docs/master/queues#supervisor-configuration>Laravel guide on queues</a> which
+makes it pretty much the default process monitor on a Laravel deployment.</p><p>Many background queue libraries, including the one that came with Laravel
+will automatically retry jobs that fails due to an exception. They usually also include
+a way to control how many times the jobs should be retried before giving up and
+moving it to the failed jobs store.</p><pre><code>php artisan queue:listen connection-name --tries=3
+</code></pre><p>One thing to keep in mind is that supervisord also includes a way to control the
+<a href=http://supervisord.org/configuration.html>maximum number of attempts to start a process after serial crashes</a>.
+When this limit is reached, it will stop trying to restart the process and the process will be put into
+the <code>FATAL</code> state. This number is controlled via the configuration entry called <code>startretries</code>, and it defaults to <code>3</code>.</p><p>In most cases, one wouldn&rsquo;t need to change this setting. But, if you set the number of retries
+on job queue to be larger than <code>3</code>, you need to make sure that the <code>startretries</code> is also
+increased accordingly. If the <code>startretries</code> is set to a number that is less than the <code>tries</code> attempt,
+it could cause an issue where <em>the supervisord retry limit is reached before the job retries
+limit is reached</em>. When this happens, the process is put into a <code>FATAL</code> state, and the worker process
+doesn&rsquo;t get started anymore, <em>halting the entire job queue</em>.</p><pre><code>[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /home/forge/app.com/artisan queue:work sqs --sleep=3 --tries=5
+autostart=true
+autorestart=true
+startretries=5
+user=forge
+numprocs=8
+redirect_stderr=true
+stdout_logfile=/home/forge/app.com/worker.log
+</code></pre><p>So, remember, make sure to keep the queue worker tries equal to or smaller than the supervisord&rsquo;s <code>startretries</code>
+to make sure the failing jobs get moved to the failed jobs queue before they halt the entire job queue.
+Of course this won&rsquo;t help if the queue is full of jobs that keeps failing, but in that scenario, you
+should really take a look at your queue worker code anyway.</p></article></div></body></html>

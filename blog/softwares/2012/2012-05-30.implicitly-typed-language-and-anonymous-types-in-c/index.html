@@ -1,0 +1,26 @@
+<!doctype html><html><head><link href="https://fonts.googleapis.com/css?family=Gentium+Book+Basic|Merriweather:400,300" rel=stylesheet type=text/css><link rel=stylesheet href=https://hendra.dev/styles/style.min.adafe591d9bc2917608cd56205e2997041b7f1d2a684555879647388e2c838f2.css></head><body><div class=container><header class=blog-header><h1><a href=https://hendra.dev/>hendra.dev</a></h1><p>A work in progress</p><nav><ul class=nav><li><a href=/blog/>blogs</a></li><li><a href=/notes/>notes</a></li></ul></nav></header><div class=post><header><h1>Implicitly Typed Language and Anonymous Types in C#</h1><p class=date>Written on <time datetime=2012-05-30T23:16:00+0700>May 30, 2012</time></p></header><article><p>In C#, there is this <code>var</code> keyword, which allows you to declare a
+variable without explicitly specifying its data type. It is important to
+note, that this doesn’t mean that it is dynamically typed, it simply
+means that the compiler will infer the data type for you, and it is also
+important to note, that it is strongly typed. So, this code below, will
+simply create a variable called x, with the data type of string.</p><pre><code>:::csharp
+var x = &quot;Hello&quot;;
+</code></pre><p>Since <code>x</code> is a strongly typed <code>string</code>, if you try to assign <code>x</code> to an
+<code>int</code>, it will throw an error. Even though it may seems inflexible, it
+is necessary when we are using anonymous types.</p><p>Anonymous Types allows you to query a set of data, without having to
+create a class/struct to hold it. For example, if I wanted to to query a
+Car database, if I want to put it in a proper data structure,
+I can either put it in a hash table object, or I would have to declare
+a class first.</p><pre><code>:::csharp
+class Car
+{
+    int year;
+    double price;
+    string model;
+}
+</code></pre><p>With anonymous type, we can do something like this:</p><pre><code>:::chsarp
+var myCar = {year=1990,price=100000,model=&quot;unknown&quot;};
+</code></pre><p>Behind the scene, the compiler will actually generate a class for us,
+with all of the necessary properties with it. This can be especially
+useful if we need to query just a subset of the properties, and creating
+the new objects without all of its properties isn’t very feasible.</p><h2 id=references>References:</h2><ul><li><a href=http://msdn.microsoft.com/en-us/library/bb397696>http://msdn.microsoft.com/en-us/library/bb397696</a></li></ul></article></div></body></html>
