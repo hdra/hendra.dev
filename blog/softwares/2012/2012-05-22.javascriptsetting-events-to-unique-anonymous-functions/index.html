@@ -1,4 +1,4 @@
-<!doctype html><html><head><link href="https://fonts.googleapis.com/css?family=Gentium+Book+Basic|Merriweather:400,300" rel=stylesheet type=text/css><link rel=stylesheet href=/styles/style.min.8651f3e31caaaf2e0d17d85b9df85041e819981ecfdca04faca686af330dd18a.css></head><body><div class=container><header class=blog-header><h1><a href=https://hendra.dev/>hendra.dev</a></h1><p>A work in progress</p><nav><ul class=nav><li><a href=/blog/>blogs</a></li><li><a href=/notes/>notes</a></li></ul></nav></header><div class=post><header><h1>Javascript – Setting Events to Unique Anonymous Functions</h1><p class=date>Written on <time datetime=2012-05-22T22:24:00+0700>May 22, 2012</time></p></header><article><p>Ok, the easiest way to convey my point is with code, so:</p><pre><code>:::javascript
+<!doctype html><html><head><link href="https://fonts.googleapis.com/css?family=Gentium+Book+Basic|Merriweather:400,300" rel=stylesheet type=text/css><link rel=stylesheet href=/styles/style.min.5e7be87fa7c7ef4bb4c12c96363c550ae3c76c0dabc2981aca7d478ab4d633b9.css></head><body><div class=container><header class=blog-header><h1><a href=https://hendra.dev/>hendra.dev</a></h1><p>A work in progress</p><nav><ul class=nav><li><a href=/blog/>blogs</a></li><li><a href=/notes/>notes</a></li></ul></nav></header><div class=post><header><h1>Javascript – Setting Events to Unique Anonymous Functions</h1><p class=date>Written on <time datetime=2012-05-22T22:24:00+0700>May 22, 2012</time></p></header><article><p>Ok, the easiest way to convey my point is with code, so:</p><pre><code>:::javascript
 function foo(bar){console.log(bar);}
 for(var i=1;i&lt;5;i++){
   $('someDiv'+i).onclick=function(){foo(i);};
@@ -19,4 +19,4 @@ function foo(bar){
 for(var i=1;i&lt;5;i++){
   $('someDiv'+i).onclick=function(i){return function(){foo(i);};}(i);
 }
-</code></pre></article><p class=page-footer>---</p></div></body></html>
+</code></pre></article><p class=page-footer>✵</p></div></body></html>
