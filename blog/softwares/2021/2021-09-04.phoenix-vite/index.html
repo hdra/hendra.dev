@@ -1,0 +1,243 @@
+<!doctype html><html><head><link href="https://fonts.googleapis.com/css?family=Gentium+Book+Basic|Merriweather:400,300" rel=stylesheet type=text/css><link rel=stylesheet href=/styles/style.min.c0b4952e0f4a487d4c3abdf274eadaeb27de0b57edd8e0ac671a741882eb6c46.css><title>hendra.dev - Vite and Phoenix</title></head><body><div class=container><header class=blog-header><h1><a href=https://hendra.dev/>hendra.dev</a></h1><p>A work in progress</p><nav><ul class=nav><li><a href=/blog/>blogs</a></li><li><a href=/notes/>notes</a></li></ul></nav></header><div class=post><header><h1>Vite and Phoenix</h1><p class=date>Written on <time datetime=2021-09-04T16:32:29+0700>Sep 4, 2021</time></p></header><article><p>I recently worked on a good-old server-rendered web application written in Phoenix. One part of this app is a rather complex form that requires quite a bit of plumbing and UI logic that is IMO a bit more than what can be comfortably written and maintained in vanilla Javascript or even AlpineJS.</p><p>Long story short, I decided to embed a small JS app built with one of the popular SPA frameworks. There are many options for this such as React, or Vue, and many of their derivatives, but I decided to give Svelte a try since the way it works by compiling away the &ldquo;framework&rdquo; into runtime code should result in a smaller payload for my need to built a complex UI flow that is relatively limited in scope. In theory, at least. Plus, I&rsquo;m also interested to checkout the framework to see how would fit in my toolbox.</p><p>The project uses Tailwind for the styling needs, and by default, Phoenix came with a webpack asset pipeline. After combing through dozens of pages of webpack config reference and github issues, I managed to setup a build that works well for both existing JS and CSS files for both the existing server-rendered pages and the SPA by setting up multiple entrypoints on webhook.</p><p>While it works for the most part, it is not a perfect setup. Because of the way webpack is integrated with Phoenix, every build requires a full page reload in order to see the changes. Webpack also needs to build the entire bundle every single time. All of that added up to a very slow feedback cycle. (I also wasn&rsquo;t able to get the styles in the <code>.svelte</code> files to be bundled properly, but I&rsquo;m sure that&rsquo;s just me getting some part of the configs wrong).</p><p>Anyway, the entire build process with Webpack is just something that I&rsquo;ve never been really happy with for various reasons, and one of the newer build-tool that I&rsquo;ve been wanting to try is <a href=https://vitejs.dev/>Vite</a>. Vite is one of the more recent build tools that takes advantage of the availability of native ES module that is becoming more mainstream among browsers.</p><p>With <a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules>ES modules</a>, browsers can load individual modules without having to bundle them first. This means each module can be changed, rebuilt, and reloaded separately without affecting unrelated modules. In theory, that should cut down the feedback cycle signficantly as the dev server now does not have to rebuild the entire bundle on every single file change.</p><p>That also means it means Vite includes a dev server that is capable of serving individual transformed javascript modules (and also notify the browser of changes, etc). The <a href=https://vitejs.dev/guide/backend-integration.html>backend integration</a> with other frameworks often requires a dev server to be started separately in another port, which I find to be not very ergonomic, so I thought given Phoenix and Elixir&rsquo;s capability to manage processes, it should be pretty trivial to start a proxy process so existence of the Vite server can be kinda opaque.</p><p>First thing first, remove Webpack and install Vite. This is what my <code>package.json</code> looks like:</p><pre><code>{
+  &quot;repository&quot;: {},
+  &quot;description&quot;: &quot; &quot;,
+  &quot;license&quot;: &quot;MIT&quot;,
+  &quot;type&quot;: &quot;module&quot;,
+  &quot;scripts&quot;: {
+    &quot;watch&quot;: &quot;vite&quot;,
+    &quot;preview&quot;: &quot;vite preview&quot;,
+    &quot;build&quot;: &quot;vite build&quot;,
+    &quot;check&quot;: &quot;svelte-check --watch --diagnostic-sources 'js,svelte'&quot;
+  },
+  &quot;dependencies&quot;: {
+    &quot;phoenix&quot;: &quot;file:../deps/phoenix&quot;,
+    &quot;phoenix_html&quot;: &quot;file:../deps/phoenix_html&quot;
+  },
+  &quot;devDependencies&quot;: {
+    &quot;@sveltejs/vite-plugin-svelte&quot;: &quot;^1.0.0-next.11&quot;,
+    &quot;@tsconfig/svelte&quot;: &quot;^2.0.1&quot;,
+    &quot;autoprefixer&quot;: &quot;^10.2.5&quot;,
+    &quot;date-fns&quot;: &quot;^2.22.1&quot;,
+    &quot;postcss-load-config&quot;: &quot;^3.1.0&quot;,
+    &quot;postcss-nested&quot;: &quot;^5.0.5&quot;,
+    &quot;svelte&quot;: &quot;^3.38.2&quot;,
+    &quot;svelte-check&quot;: &quot;^2.2.3&quot;,
+    &quot;svelte-preprocess&quot;: &quot;^4.7.3&quot;,
+    &quot;tailwindcss&quot;: &quot;^2.1.2&quot;,
+    &quot;tslib&quot;: &quot;^2.2.0&quot;,
+    &quot;typescript&quot;: &quot;^4.3.2&quot;,
+    &quot;vite&quot;: &quot;^2.4.0&quot;
+  }
+}
+</code></pre><p>My setup includes some additional dependencies as I like to use Typescript with svelte. Then, next thing to setup is to update the <code>config/dev.exs</code> file to setup the watcher.</p><pre><code>  watchers: [
+    npm: [
+      &quot;run&quot;,
+      &quot;watch&quot;,
+      cd: Path.expand(&quot;../assets&quot;, __DIR__)
+    ]
+  ]
+</code></pre><p>We also needs a <code>vite.config.js</code> file to tell Vite how to build.</p><pre><code>import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+
+export default defineConfig({
+  plugins: [svelte()],
+  publicDir: './static',
+  build: {
+    manifest:true,
+    outDir: '../priv/static',
+    rollupOptions: {
+      input: {
+        app: './js/app.js',
+        fancyForm: './js/fancyForm/index.js',
+      }
+    }
+  }
+})
+</code></pre><p>In the sample above, I defined 2 entry points, an <code>app</code> and <code>fancyForm</code>, each of them pointing to a javascript entry file. The <code>app</code> pointing to the global javascript bundle, and the <code>fancyForm</code> to the complex component that will only be used on certain pages. This is only used for the production build, during development, I will route the traffic to the files I need directly with the next part of the config.</p><p>Now, running <code>mix phx.server</code> will also start the Vite dev server, which would run on port 3000 by default. As the Phoenix dev server runs on port 4000 by default, I need to setup a proxy to forward the assets request to the vite dev server. There is probably a more lightweight solution that can be built with Plug, but as I wanted to have a proof of concept running quickly, I just searched hex.pm for a package that I can use, and I went with <code>reverse_proxy_plug</code>. Next to set it up in the app&rsquo;s endpoint so it can redirect the appropriate traffic. I wanted an API similar to the <code>Plug.Static</code>, so I just made some minor changes around it.</p><pre><code>defmodule VitePlug do
+
+  @behaviour Plug
+  @allowed_methods ~w(GET HEAD)
+
+  alias Plug.Conn
+
+  @impl true
+  def init(opts) do
+    %{
+      only_rules: {
+        Keyword.get(opts, :only, []) |&gt; add_vite_paths(),
+        Keyword.get(opts, :only_matching, [])
+      },
+      at: opts |&gt; Keyword.fetch!(:at) |&gt; Plug.Router.Utils.split()
+    }
+  end
+
+  defp add_vite_paths(paths) do
+    [&quot;@vite&quot;, &quot;__vite_ping&quot;, &quot;node_modules&quot;, &quot;@fs&quot;] ++ paths
+  end
+
+  @impl true
+  def call(conn = %Conn{method: meth}, %{at: at, only_rules: only_rules} = _options) when meth in @allowed_methods do
+    segments = subset(at, conn.path_info)
+
+    if allowed?(only_rules, segments) do
+      opts = ReverseProxyPlug.init(upstream: &quot;http://localhost:3000&quot;)
+      ReverseProxyPlug.call(conn, opts)
+      |&gt; Conn.halt()
+    else
+      conn
+    end
+  end
+
+  def call(conn, _options) do
+    conn
+  end
+
+  defp subset([h | expected], [h | actual]), do: subset(expected, actual)
+  defp subset([], actual), do: actual
+  defp subset(_, _), do: []
+
+  defp allowed?(_only_rules, []), do: false
+  defp allowed?({[], []}, _list), do: true
+
+  defp allowed?({full, prefix}, [h | _]) do
+    h in full or (prefix != [] and match?({0, _}, :binary.match(h, prefix)))
+  end
+end
+
+</code></pre><p>And it can be used as such:</p><pre><code>if Mix.env() == :prod do
+  plug Plug.Static,
+    at: &quot;/&quot;,
+    from: :app,
+    gzip: true,
+    only: ~w(assets css fonts images favicon.ico robots.txt)
+else
+  plug VitePlug, at: &quot;/&quot;, only: ~w(js css fonts images favicon.ico robots.txt)
+end
+</code></pre><p>It can certainly be improved further, but it will work for now. On production deployment, Vite will still be bundling our assets, so we will keep using <code>Plug.Static</code> for it, and for dev, the assets to the static assets will be proxied to the Vite server. In addition to the static paths, some vite-specific requests are also added as these are needed for things like HMR to work.</p><p>During development, the usual <code>Routes.static_path</code> helper can be used to generate the links to javascript entrypoints thats needed. As the request will be piped through the proxy server to the Vite server, and from there, additional imported dependencies such as CSS files or other modules will be done through ES modules loading, which will also be proxied to the Vite server. A script link to <code>/@vite/client</code> also needs to be included to enable various Vite dev server features.</p><p>Continuing on the example above, I&rsquo;d want the <code>app.js</code> and <code>app.css</code> on every page of the app as thats used by various server-render pages, and also the <code>/@vite/client</code> as that is needed for Vite to work properly. I could update root <code>layout/app.html.eex</code> file to include the following:</p><pre><code>&lt;link rel=&quot;stylesheet&quot; href=&quot;&lt;%= Routes.static_path(@conn, &quot;/css/app.css&quot;) %&gt;&quot;/&gt;
+&lt;script type=&quot;module&quot; src=&quot;&lt;%= Routes.static_path(@conn, &quot;/js/app.js&quot;) %&gt;&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;module&quot; src=&quot;&lt;%= Routes.static_path(@conn, &quot;/@vite/client&quot;) %&gt;&quot;&gt;&lt;/script&gt;
+</code></pre><p>So here Vite is acting as if it is a static file server, and I could request any file that I want as if it is a static file, and Vite will return the transformed javascript code. And because of the way the proxy is setup, I can keep using the static files as if they exist in the static folder and served by <code>Plug.Static</code>. Likewise, the fancyForm can be included with the snippet below. If the file imports any CSS file, there is no need to explicitly include the <code>link</code> tag to the CSS file, as the script will import the stylesheet as a module.</p><pre><code>&lt;script type=&quot;module&quot; src=&quot;&lt;%= Routes.static_path(@conn, &quot;/js/fancyForm/index.js&quot;) %&gt;&quot;&gt;&lt;/script&gt;
+</code></pre><p>For production build tough, Vite will <em>bundle</em> the assets into chunks, and it will generate a <code>manifest.json</code>, that maps the entry points to their dependencies, and I&rsquo;d need to include these chunks on the rendered HTML. A sample of the manifest file from Vite&rsquo;s website looks like below:</p><pre><code>{
+  &quot;main.js&quot;: {
+    &quot;file&quot;: &quot;assets/main.4889e940.js&quot;,
+    &quot;src&quot;: &quot;main.js&quot;,
+    &quot;isEntry&quot;: true,
+    &quot;dynamicImports&quot;: [&quot;views/foo.js&quot;],
+    &quot;css&quot;: [&quot;assets/main.b82dbe22.css&quot;],
+    &quot;assets&quot;: [&quot;assets/asset.0ab0f9cd.png&quot;]
+  },
+  &quot;views/foo.js&quot;: {
+    &quot;file&quot;: &quot;assets/foo.869aea0d.js&quot;,
+    &quot;src&quot;: &quot;views/foo.js&quot;,
+    &quot;isDynamicEntry&quot;: true,
+    &quot;imports&quot;: [&quot;_shared.83069a53.js&quot;]
+  },
+  &quot;_shared.83069a53.js&quot;: {
+    &quot;file&quot;: &quot;assets/shared.83069a53.js&quot;
+  }
+}
+</code></pre><p>So now, I&rsquo;d need to write something that takes an entry point, and then generate a static link to it and all its dependencies. While I&rsquo;m at it, I decided to also write a generic function that can be used to include a static asset, and then generate the appropirate tags depending if it is running on prod or dev.</p><pre><code>defmodule ViteLink do
+  alias AppWeb.Router.Helpers, as: Routes
+
+  defp is_prod(), do: Mix.env() == :prod
+
+  # Generate vite client tags on dev, renders nothing on prod
+  def client_tags(conn) do
+    if is_prod() do
+      nil
+    else
+      vite_client_src = Routes.static_path(conn, &quot;/@vite/client&quot;)
+      ~s(&lt;script type=&quot;module&quot; src=&quot;#{vite_client_src}&quot;&gt;&lt;/script&gt;)
+      |&gt; Phoenix.HTML.raw()
+    end
+  end
+
+  # Generate single entry script tag to the entry point on dev,
+  # generate tags for all its deps on prod
+  def generate_tags(conn, entry_point) do
+    if is_prod() do
+      files = get_files(entry_point) |&gt; Enum.reverse()
+      get_links(conn, files)
+    else
+      get_tag(conn, {:js, &quot;/#{entry_point}&quot;})
+      |&gt; Phoenix.HTML.raw()
+    end
+  end
+
+  def get_manifest() do
+    manifest_file = Application.app_dir(:app, &quot;priv/static/manifest.json&quot;)
+
+    if File.exists?(manifest_file) do
+      {
+        :ok,
+        File.read!(manifest_file)
+        |&gt; Jason.decode!()
+      }
+    else
+      {:error, &quot;manifest.json not found, pls run asset build&quot;}
+    end
+  end
+
+  def get_files(entry_point) do
+    {:ok, manifest} = get_manifest()
+
+    entry = Map.get(manifest, entry_point)
+
+    files = [
+      {:js, Map.get(entry, &quot;file&quot;)} |
+      Map.get(entry, &quot;css&quot;)
+      |&gt; Enum.map(&amp;({:css, &amp;1}))
+    ]
+
+    process_file(
+      Map.get(entry, &quot;imports&quot;),
+      manifest,
+      files
+    )
+  end
+
+  def process_file(nil, _manifest, files), do: files
+  def process_file([], _manifest, files), do: files
+  def process_file([current | imports], manifest, files)do
+    entry = Map.get(manifest, current)
+
+    current_files = [
+      {:js, Map.get(entry, &quot;file&quot;)} |
+      Map.get(entry, &quot;css&quot;)
+      |&gt; Enum.map(&amp;({:css, &amp;1}))
+    ]
+
+    files = files ++ current_files
+
+    process_file(
+      imports,
+      manifest,
+      process_file(Map.get(entry, &quot;imports&quot;), manifest, files)
+    )
+  end
+
+  def get_links(conn, files) do
+    files
+    |&gt; Enum.map(fn {type, file} -&gt;
+      get_tag(conn, {type, &quot;/#{file}&quot;})
+    end)
+    |&gt; Enum.join(&quot;\n&quot;)
+    |&gt; Phoenix.HTML.raw()
+  end
+
+  defp get_tag(conn, {:js, path}) do
+    src = Routes.static_path(conn, path)
+    ~s(&lt;script type=&quot;module&quot; src=&quot;#{src}&quot;&gt;&lt;/script&gt;)
+  end
+
+  defp get_tag(conn, {:css, path}) do
+    src = Routes.static_path(conn, path)
+    ~s(&lt;link rel=&quot;stylesheet&quot; href=&quot;#{src}&quot;/&gt;)
+  end
+end
+</code></pre><p>With that, the tags from before can be rewritten as:</p><pre><code>&lt;%= ViteLink.client_tags(@conn) %&gt;
+&lt;%= ViteLink.generate_tags(@conn, &quot;js/app.js&quot;) %&gt;
+</code></pre><p>Now the links would work for both dev and production build. One thing to keep in mind though, is the Vite build outputs includes a digest in their filenames, and by default, Phoenix&rsquo;s <code>static_path</code> would also include the file digest generated by <code>mix phx.digest</code> command. This means our call to <code>Routes.static_path(conn, "assets/main.4889e940.js")</code> would output something like <code>assets/main.4889e940.&lt;phoenix digest>.js</code>.</p><p>This is not by itself a big issue as it simply have added another digest on top. A bit of wasted work, but doesn&rsquo;t really break anything. The issue is when the Javascript code attempted to load a module, it would attempt to do so with only the Vite-digested file name. Since the generated <code>script</code> tags use the link with the phoenix digest, browsers would not recognize them as the same file, and would attempt to download the file again.</p><p>One option here is to simply not generate the dependencies script tag and let the browser load them via ESM, but this would introduce additional latency as browser would first need to download and parse the entry javascript files in order to know what are their dependencies.</p><p>I ended up disabling the phoenix digest entirely by removing the <code>cache_static_manifest</code> config key. This would cause <code>Routes.static_path</code> calls to not include the digest, so the file loaded by the script and the file included by the script tag to have the same name.</p><pre><code>config :app, AppWeb.Endpoint,
+  url: [host: &quot;example.com&quot;, port: 80]
+  # cache_static_manifest: &quot;priv/static/cache_manifest.json&quot; &lt;-- Remove this line
+</code></pre><p>I haven&rsquo;t been able to find a documentation on what other behaviour the <code>cache_static_manifest</code> affects, and I&rsquo;m rather occupied to do a source dive to find out, but so far it seems to have only affected the cache-busting digest.</p><p>And thats it. With the setup described above, we have a Phoenix project that would automatically starts a Vite webserver on <code>mix phx.server</code>, proxy the static files requests, and generates the correct static links for both dev and production run.</p><p>I thought of cleaning them up, maybe put in some fallback ports for the vite server, clean up some configs, fix some the runtime/compile time, maybe write some of the functions as compile-time macros, or even package them into a hex package, but I ended up not bothering with them as I&rsquo;m not entirely happy with the setup.</p><p>While Vite indeed managed to deliver on its promise of super-fast feedback cycle while working on front-end code, the setup I&rsquo;m working with is still inherently a server-rendered app. Given the way ES modules works, it means on every page load, the browser would need to reload all the dependencies again, which leads to a cascade of dependencies loading. This can be especially bad if the app has a deep dependency tree, where each page load can take close to 10 seconds to completely load all the client side dependencies.</p><p>Another issue I had, and this is specific to my particular setup, is that I prefer to use Typescript while working with Javascript. Vite uses <code>esbuild</code> to transform the typescript code into javascript, and <code>esbuild</code> does not perform any type of typechecking. This can be resolved by running another process like <code>svelte-check</code> that performs the typechecking separately, but I dont like the disconnect there.</p><p>I&rsquo;d say Vite delivered on its promises. I kinda expected the issues on page-reload, but didn&rsquo;t expect it to be so severe. I am happy with this current setup for this particular project, and definitely is an improvement over the config labyrinth that comes with Webpack, but I&rsquo;m not keen on taking it further, hence I decided to write this post to at least document the approach. Also, few days after I got the setup working, I saw the <a href=https://twitter.com/josevalim/status/1417017859847475201>tweet where it was announced that Phoenix will move to to esbuild</a>, which IMO is definitely a good move, and makes having to deal with Webpack much less of an issue.</p><p>All in all, I&rsquo;d say embedding an SPA inside a server-rendered app is an awkward place to be, and the setup above may work better if you are building an API with Phoenix and just wants a way to keep everything in a single repo. I find hard to give up the benefit of a server-rendered app, but when building a complex piece of UI, I feel vanilla javascript isn&rsquo;t much of a solution either. Maybe one day someone will come-up with a client-side library built with server-side hydration as a first-class thought.</p></article><p class=page-footer>✵</p></div></body></html>
