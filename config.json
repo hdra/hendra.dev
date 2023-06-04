@@ -5,6 +5,7 @@
   "params": {
     "subtitle": "A work in progress"
   },
+  "summaryLength": 30,
   "markup": {
     "highlight": {
       "anchorLineNos": false,

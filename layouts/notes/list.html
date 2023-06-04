@@ -1,0 +1,23 @@
+{{define "main"}}
+
+<div>
+  List of short thought-dump and resources I've came across here and there.
+</div>
+
+<div class="post-list">
+    {{ range .Paginator.Pages }}
+      <article class="post-overview">
+        <h2>
+          <a href="{{ .Permalink }}">{{ .Title }}</a>
+        </h2>
+        <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z0700" }}">
+          {{ .Date.Format "Jan 2, 2006" }}
+        </time>
+        <div class="excerpt">
+          {{ .Summary }}
+        </div>
+      </article>
+    {{ end }}
+</div>
+{{ template "_internal/pagination.html" . }}
+{{ end }}
