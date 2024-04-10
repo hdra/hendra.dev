@@ -2,8 +2,10 @@
 <html>
   <head>
     <link href='https://fonts.googleapis.com/css?family=Gentium+Book+Basic|Merriweather:400,300' rel='stylesheet' type='text/css'>
-    {{ $style := resources.Get "styles/style.sass" | resources.ToCSS | resources.Minify | resources.Fingerprint }}
-    <link rel="stylesheet" href="{{ $style.RelPermalink }}">
+    {{ $style := resources.Get "styles/style.sass" | resources.ToCSS  }}
+    {{ $syntax := resources.Get "styles/syntax.css" }}
+    {{ $bundle := slice $style $syntax | resources.Concat "styles/bundle.css" | resources.Minify | resources.Fingerprint }}
+    <link rel="stylesheet" href="{{ $bundle.RelPermalink }}">
     <title>{{.Site.Title}} {{ if .Page.Title }} - {{ .Page.Title }}{{ end }}</title>
   </head>
   <body>
